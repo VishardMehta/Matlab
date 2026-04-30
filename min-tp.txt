@@ -1,0 +1,70 @@
+clc
+clear all
+format short
+
+% Cost matrix
+Cost = [11 20 7 8;
+        21 16 10 12;
+        8 12 18 9];
+
+% Supply and Demand
+A = [50 40 70];
+B = [30 25 35 40];
+
+% Check balanced/unbalanced
+if sum(A)==sum(B)
+    fprintf('Given Transportation Problem is Balanced \n')
+else
+    fprintf('Given Transportation Problem is Unbalanced \n')
+    if sum(A)<sum(B)
+        Cost(end+1,:) = zeros(1,size(B,2));
+        A(end+1) = sum(B)-sum(A);
+    else
+        Cost(:,end+1) = zeros(1,size(A,2));
+        B(end+1) = sum(A)-sum(B);
+    end
+end
+
+ICost = Cost;              % store original cost
+X = zeros(size(Cost));     % allocation matrix
+[m,n] = size(Cost);
+BFS = m+n-1;
+
+% LCM Allocation
+while any(A>0) && any(B>0)
+    
+    min_val = inf;
+    for i=1:m
+        for j=1:n
+            if A(i)>0 && B(j)>0 && Cost(i,j)<min_val
+                min_val = Cost(i,j);
+                row = i;
+                col = j;
+            end
+        end
+    end
+    
+    x = min(A(row), B(col));
+    X(row,col) = x;
+    
+    A(row) = A(row) - x;
+    B(col) = B(col) - x;
+    
+    Cost(row,col) = inf;
+end
+
+% Print BFS
+fprintf('Initial BFS = \n')
+disp(array2table(X))
+
+% Degeneracy check
+TotalBFS = length(nonzeros(X));
+if TotalBFS == BFS
+    fprintf('Initial BFS is Non-Degenerate \n')
+else
+    fprintf('Initial BFS is Degenerate \n')
+end
+
+% Total minimum cost
+InitialCost = sum(sum(ICost .* X));
+fprintf('Initial Transportation Cost = %d \n', InitialCost)
